@@ -161,7 +161,7 @@ class Py3oParser(report_sxw):
                 'tmpl_file': in_stream,
             }
             fields = {
-                "targetformat": filetype.fusion_ext,
+                "targetformat": filetype,
                 "datadict": json.dumps(input),
                 "image_mapping": "{}",
             }
