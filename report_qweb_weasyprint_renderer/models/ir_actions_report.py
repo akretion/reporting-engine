@@ -14,14 +14,13 @@ class IrActionsReport(models.Model):
         selection_add=[('weasyprint', 'WeasyPrint')],
     )
 
-    @api.multi
     def _render_qweb_pdf_weasyprint(self, res_ids=None, data=None):
         data = data or {}
         data['enable_editor'] = False,
         context = dict(self.env.context)
         context['qweb_pdf_engine'] = 'weasyprint'
 
-        html = self.with_context(**context).render_qweb_html(
+        html = self.with_context(**context)._render_qweb_html(
             res_ids, data=data
         )[0]
         return HTML(
