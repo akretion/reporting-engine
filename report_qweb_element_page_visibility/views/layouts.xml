@@ -39,7 +39,8 @@
                             elt.style.visibility = (vars.sitepage == vars.sitepages) ? "hidden" : "visible";
                         },
                         'first-page': function (elt) {
-                            elt.style.visibility = (vars.sitepage == vars.frompage) ? "visible" : "hidden";
+                            // hack pour ne pas décaler le reste du contenu de la page
+                            if (!(vars.sitepage == vars.frompage)) {elt.style.maxHeight="0px";}
                         },
                         'last-page': function (elt) {
                             elt.style.visibility = (vars.sitepage == vars.sitepages) ? "visible" : "hidden";
