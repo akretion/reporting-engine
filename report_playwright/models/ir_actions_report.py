@@ -1,29 +1,24 @@
 import io
-import json
 import logging
 import os
-import re
-import subprocess
 import tempfile
+import time
 from collections import OrderedDict
-from contextlib import closing
 
 from PIL import Image
-from PyPDF2 import PdfFileReader, PdfFileWriter
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.http import request
 from odoo.tools import config
-from odoo.tools.misc import find_in_path, ustr
+from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
 
 playwright_state = "install"
 
 try:
-    from playwright.sync_api import sync_playwright
-    from playwright.sync_api import Error
+    from playwright.sync_api import Error, sync_playwright
 
     with sync_playwright() as p:
         try:
@@ -171,7 +166,7 @@ class IrActionsReport(models.Model):
                     landscape=print_options["landscape"],
                     path=pdf_output_path,
                 )
-        except:
+        except Exception:
             raise
 
         pdf_streams = []
@@ -182,8 +177,8 @@ class IrActionsReport(models.Model):
         for file in temporary_files:
             try:
                 os.unlink(file)
-            except (OSError, IOError):
-                _logger.error('Error when trying to remove file %s' % file)
+            except OSError:
+                _logger.error("Error when trying to remove file %s" % file)
 
         return pdf_streams
 
@@ -258,7 +253,8 @@ class IrActionsReport(models.Model):
                     )
                 )
 
-            # Disable the debug mode in the PDF rendering in order to not split the assets bundle
+            # Disable the debug mode in the PDF rendering in order to not split
+            # the assets bundle
             # into separated files to load. This is done because of an issue in wkhtmltopdf
             # failing to load the CSS/Javascript resources in time.
             # Without this, the header/footer of the reports randomly disappear
@@ -268,12 +264,17 @@ class IrActionsReport(models.Model):
 
             # As the assets are generated during the same transaction as the rendering of the
             # templates calling them, there is a scenario where the assets are unreachable: when
-            # you make a request to read the assets while the transaction creating them is not done.
-            # Indeed, when you make an asset request, the controller has to read the `ir.attachment`
+            # you make a request to read the assets while the transaction creating
+            # them is not done.
+            # Indeed, when you make an asset request, the controller has to read the
+            # `ir.attachment`
             # table.
-            # This scenario happens when you want to print a PDF report for the first time, as the
-            # assets are not in cache and must be generated. To workaround this issue, we manually
-            # commit the writes in the `ir.attachment` table. It is done thanks to a key in the context.
+            # This scenario happens when you want to print a PDF report for the first
+            # time, as the
+            # assets are not in cache and must be generated. To workaround this issue,
+            # we manually
+            # commit the writes in the `ir.attachment` table. It is done thanks
+            # to a key in the context.
             if (
                 not config["test_enable"]
                 and "commit_assetsbundle" not in self.env.context
@@ -285,18 +286,26 @@ class IrActionsReport(models.Model):
             )[0]
             url = self._get_report_url() + data["path"]
 
-            bodies, html_ids, header, footer, specific_paperformat_args = (
-                self.with_context(**additional_context)._prepare_html(
-                    html, report_model=report_sudo.model
-                )
+            (
+                bodies,
+                html_ids,
+                header,
+                footer,
+                specific_paperformat_args,
+            ) = self.with_context(**additional_context)._prepare_html(
+                html, report_model=report_sudo.model
             )
 
             if report_sudo.attachment and set(res_ids_wo_stream) != set(html_ids):
                 raise UserError(
                     _(
-                        "The report's template %r is wrong, please contact your administrator. \n\n"
-                        "Can not separate file to save as attachment because the report's template does not contains the"
-                        " attributes 'data-oe-model' and 'data-oe-id' on the div with 'article' classname.",
+                        "The report's template %r is wrong, "
+                        "please contact your "
+                        "administrator. \n\n"
+                        "Can not separate file to save as attachment because the report's "
+                        "template does not contains the"
+                        " attributes 'data-oe-model' and 'data-oe-id' on the div with "
+                        "'article' classname.",
                         self.name,
                     )
                 )
@@ -314,8 +323,8 @@ class IrActionsReport(models.Model):
             if not res_ids:
                 return {
                     False: {
-                        'stream': io.BytesIO(pdf_streams[0]),
-                        'attachment': None,
+                        "stream": io.BytesIO(pdf_streams[0]),
+                        "attachment": None,
                     }
                 }
 
@@ -323,7 +332,7 @@ class IrActionsReport(models.Model):
 
             # Only one record: append the whole PDF.
             if len(res_ids_wo_stream) == 1:
-                collected_streams[res_ids_wo_stream[0]]['stream'] = pdf_streams[0]
+                collected_streams[res_ids_wo_stream[0]]["stream"] = pdf_streams[0]
                 return collected_streams
 
             # In case of multiple docs, we need to split the pdf according the records.
@@ -332,13 +341,15 @@ class IrActionsReport(models.Model):
             # we look on the pdf structure using pypdf to compute the outlines_pages from
             # the top level heading in /Outlines.
             html_ids_wo_none = [x for x in html_ids if x]
-            if len(res_ids_wo_stream) > 1 and set(res_ids_wo_stream) == set(html_ids_wo_none):
+            if len(res_ids_wo_stream) > 1 and set(res_ids_wo_stream) == set(
+                html_ids_wo_none
+            ):
                 for i in range(len(res_ids)):
-                    collected_streams[res_ids[i]]['stream'] = pdf_streams[i]
+                    collected_streams[res_ids[i]]["stream"] = pdf_streams[i]
 
                 return collected_streams
 
-            collected_streams[False] = {'stream': pdf_streams[0], 'attachment': None}
+            collected_streams[False] = {"stream": pdf_streams[0], "attachment": None}
 
         return collected_streams
 
@@ -372,11 +383,14 @@ class IrActionsReport(models.Model):
                     continue
 
                 # if res_id is false
-                # we are unable to fetch the record, it won't be saved as we can't split the documents unambiguously
+                # we are unable to fetch the record, it won't be saved as
+                # we can't split the documents unambiguously
                 if not res_id:
                     _logger.warning(
-                        "These documents were not saved as an attachment because the template of %s doesn't "
-                        "have any headers seperating different instances of it. If you want it saved,"
+                        "These documents were not saved as an attachment "
+                        "because the template of %s doesn't "
+                        "have any headers seperating different "
+                        "instances of it. If you want it saved,"
                         "please print the documents separately",
                         report_sudo.report_name,
                     )
