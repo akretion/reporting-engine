@@ -7,7 +7,7 @@ function _getReportUrl(action, type, env) {
     let url = `/report/${type}/${action.report_name}`;
     const actionContext = action.context || {};
     if (action.data && JSON.stringify(action.data) !== "{}") {
-        // build a query string with `action.data` (it's the place where reports
+        // Build a query string with `action.data` (it's the place where reports
         // using a wizard to customize the output traditionally put their options)
         const options = encodeURIComponent(JSON.stringify(action.data));
         const context = encodeURIComponent(JSON.stringify(actionContext));
@@ -17,7 +17,9 @@ function _getReportUrl(action, type, env) {
             url += `/${actionContext.active_ids.join(",")}`;
         }
         if (type === "html") {
-            const context = encodeURIComponent(JSON.stringify(env.services.user.context));
+            const context = encodeURIComponent(
+                JSON.stringify(env.services.user.context)
+            );
             url += `?context=${context}`;
         }
     }
@@ -40,18 +42,20 @@ async function _triggerDownload(env, action, options, type) {
     }
     const onClose = options.onClose;
     if (action.close_on_report_download) {
-        return env.services.action.doAction({ type: "ir.actions.act_window_close" }, { onClose });
+        return env.services.action.doAction(
+            {type: "ir.actions.act_window_close"},
+            {onClose}
+        );
     } else if (onClose) {
         onClose();
     }
 }
 
-
 registry
     .category("ir.actions.report handlers")
     .add("playwright_handler", async function (action, options, env) {
         if (action.report_type === "playwright-pdf") {
-            await _triggerDownload(env, action, options, "html")
+            await _triggerDownload(env, action, options, "html");
             return Promise.resolve(true);
         }
         return Promise.resolve(false);

@@ -3,5 +3,6 @@ cryptography
 endesive
 mock
 openpyxl
+playwright
 py3o.formats
 py3o.template
