@@ -6,7 +6,7 @@
     "version": "16.0.1.0.5",
     "category": "Reporting",
     "license": "AGPL-3",
-    "author": "François Poizat, Odoo Community Association (OCA)",
+    "author": "François Poizat (Akretion), Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/reporting-engine",
     "depends": ["web"],
     "external_dependencies": {
