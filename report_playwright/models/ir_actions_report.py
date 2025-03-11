@@ -3,6 +3,7 @@ import logging
 import os
 import tempfile
 import time
+from urllib.parse import urlparse
 from collections import OrderedDict
 
 from PIL import Image
@@ -70,11 +71,13 @@ class IrActionsReport(models.Model):
 
         # Passing the cookie to playwright in order to resolve internal links.
         if request and request.db:
+            base_url = self._get_report_url()
+            domain = urlparse(base_url).hostname
             options["cookies"] = [
                 {
                     "name": "session_id",
                     "value": request.session.sid,
-                    "domain": "odoo",
+                    "domain": domain,
                     "httpOnly": True,
                     "expires": -1,
                     "path": "/",
