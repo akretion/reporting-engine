@@ -30,7 +30,8 @@ try:
             _logger.info("Connected to Playwright successfuly")
         except Error as e:
             _logger.info(f"Cannot connect to playwright server {e.message}")
-except ModuleNotFoundError:
+            raise Exception from e
+except (ModuleNotFoundError, Exception) as e:
     _logger.info("You need playwright to print a pdf version of the reports.")
 else:
     playwright_state = "ok"
