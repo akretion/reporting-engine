@@ -2,6 +2,7 @@
 
 import {download} from "@web/core/network/download";
 import {registry} from "@web/core/registry";
+import {user} from "@web/core/user";
 
 function _getReportUrl(action, type, env) {
     let url = `/report/${type}/${action.report_name}`;
@@ -17,9 +18,7 @@ function _getReportUrl(action, type, env) {
             url += `/${actionContext.active_ids.join(",")}`;
         }
         if (type === "html") {
-            const context = encodeURIComponent(
-                JSON.stringify(env.services.user.context)
-            );
+            const context = encodeURIComponent(JSON.stringify(user.context));
             url += `?context=${context}`;
         }
     }
@@ -34,7 +33,7 @@ async function _triggerDownload(env, action, options, type) {
             url: "/report/download",
             data: {
                 data: JSON.stringify([url, action.report_type]),
-                context: JSON.stringify(env.services.user.context),
+                context: JSON.stringify(user.context),
             },
         });
     } finally {

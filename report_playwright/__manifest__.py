@@ -3,7 +3,7 @@
 {
     "name": "Playwright Report Engine",
     "summary": "Reporting engine based on playwright",
-    "version": "16.0.1.0.5",
+    "version": "18.0.1.0.1",
     "category": "Reporting",
     "license": "AGPL-3",
     "author": "François Poizat (Akretion), Odoo Community Association (OCA)",
