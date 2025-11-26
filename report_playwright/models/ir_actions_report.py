@@ -114,7 +114,8 @@ class IrActionsReport(models.Model):
             if not landscape and paperformat_id.orientation:
                 options["landscape"] = str(paperformat_id.orientation) == "Landscape"
 
-        options["landscape"] = landscape
+        if "landscape" not in options:
+            options["landscape"] = landscape
 
         if header_content:
             options["headerTemplate"] = header_content
@@ -165,6 +166,8 @@ class IrActionsReport(models.Model):
                 page = b_context.new_page()
                 page.goto(url)
                 page.pdf(
+                    header_template=print_options["headerTemplate"],
+                    footer_template=print_options["headerTemplate"],
                     format=print_options["format"],
                     margin=print_options["margin"],
                     landscape=print_options["landscape"],
@@ -245,7 +248,6 @@ class IrActionsReport(models.Model):
         is_playwright_needed = not res_ids or res_ids_wo_stream
 
         if is_playwright_needed:
-
             if self.get_playwright_state() == "install":
                 # playwright is not installed
                 # the call should be catched before (cf /report/check_wkhtmltopdf) but
