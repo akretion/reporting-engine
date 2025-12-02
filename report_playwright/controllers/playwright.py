@@ -42,9 +42,7 @@ class ReportController(ReportController):
         return request.make_response(pdf, headers=pdfhttpheaders)
 
     @route()
-    def report_download(
-        self, data, context=None, token=None
-    ):  # pylint: disable=unused-argument
+    def report_download(self, data, context=None, token=None):  # pylint: disable=unused-argument
         requestcontent = json.loads(data)
         url, type_ = requestcontent[0], requestcontent[1]
         reportname = "???"
@@ -72,8 +70,9 @@ class ReportController(ReportController):
                 else:
                     # Particular report:
                     if "context" in data:
-                        context, data_context = json.loads(context or "{}"), json.loads(
-                            data.pop("context")
+                        context, data_context = (
+                            json.loads(context or "{}"),
+                            json.loads(data.pop("context")),
                         )
                         context = json.dumps({**context, **data_context})
                     response = self.report_routes(
