@@ -64,28 +64,41 @@
                                     />
                                 </group>
                             </group>
-                            <group name="general-right" string="General">
+                            <group name="general-right" col="1">
+                                <group name="general-right-general" string="General">
                                 <field name="pdfa" />
+                                <field name="pdfua" />
                                 <field
-                                    name="tagged_pdf"
-                                    attrs="{'invisible': [('pdfa', '=', True)]}"
-                                />
+                                        name="tagged_pdf"
+                                        attrs="{'readonly': ['|', ('pdfa', '!=', False), ('pdfua', '=', True)]}"
+                                    />
+                                <field name="pdf_form" string="Create PDF Form" />
                                 <field
-                                    name="pdf_form"
-                                    attrs="{'invisible': [('pdfa', '=', True)]}"
-                                />
+                                        name="pdf_form_format"
+                                        attrs="{'required': [('pdf_form', '=', True)]}"
+                                    />
                                 <field
-                                    name="pdf_form_format"
-                                    attrs="{'invisible': [('pdf_form', '!=', True)], 'required': [('pdf_form', '=', True)]}"
-                                />
+                                        name="pdf_form_allow_duplicate"
+                                        attrs="{'invisible': [('pdf_form', '!=', True)]}"
+                                    />
+</group>
+                                <group
+                                    name="general-right-structure"
+                                    string="Structure"
+                                >
                                 <field
-                                    name="pdf_form_allow_duplicate"
-                                    attrs="{'invisible': [('pdf_form', '!=', True)]}"
-                                />
-                                <field name="export_bookmarks" />
+                                        name="export_bookmarks"
+                                        attrs="{'readonly': [('pdfua', '=', True)]}"
+                                    />
                                 <field name="export_placeholders" />
                                 <field name="export_comments" />
-                                <field name="export_hidden_slides" />
+                                <field name="export_comments_in_margin" />
+                                <field name="export_auto_inserted_blank_pages" />
+                                <field
+                                        name="use_reference_xobjects"
+                                        attrs="{'readonly': [('pdfua', '=', True)]}"
+                                    />
+                            </group>
                             </group>
                         </group>
                     </page>
@@ -121,6 +134,9 @@
                                     <field name="open_fullscreen" />
                                     <field name="display_document_title" />
                                 </group>
+                                <group name="transitions-options" string="Transitions">
+                                    <field name="use_transition_effects" />
+                                </group>
                             </group>
                             <group name="user_intf-right" col="1">
                                 <group
@@ -151,43 +167,57 @@
                     </page>
                     <page string="Security" name="security">
                         <group name="security">
-                            <group
-                                name="security-left"
-                                attrs="{'invisible': [('pdfa', '=', True)]}"
-                            >
-                                <field name="encrypt" />
+                            <group name="security-left">
+                                <field
+                                    name="encrypt"
+                                    attrs="{'readonly': [('pdfa', '!=', False)]}"
+                                />
                                 <field
                                     name="document_password"
                                     password="True"
-                                    attrs="{'invisible': [('encrypt', '!=', True)], 'required': [('encrypt', '=', True)]}"
+                                    attrs="{'readonly': [('encrypt', '!=', True)], 'required': [('encrypt', '=', True)]}"
                                 />
-                                <field name="restrict_permissions" />
+                                <field
+                                    name="restrict_permissions"
+                                    attrs="{'readonly': [('pdfa', '!=', False)]}"
+                                />
                                 <field
                                     name="permission_password"
                                     password="True"
-                                    attrs="{'invisible': [('restrict_permissions', '!=', True)], 'required': [('restrict_permissions', '=', True)]}"
+                                    attrs="{'invisible': [('restrict_permissions', '!=', True)], 'required': [('restrict_permissions', '=', True)], 'readonly': [('pdfa', '!=', False)]}"
                                 />
                             </group>
+                            <group name="security-right" col="1">
                             <group
-                                name="security-right"
-                                attrs="{'invisible': ['|', ('pdfa', '=', True), ('restrict_permissions', '=', False)]}"
-                            >
+                                    name="security-right-top"
+                                    attrs="{'readonly': ['|', ('pdfa', '!=', False), ('restrict_permissions', '=', False)]}"
+                                >
                                 <field name="printing" widget="radio" />
                                 <field name="changes" widget="radio" />
-                                <field name="content_copying_allowed" />
-                                <field name="text_access_accessibility_tools_allowed" />
                             </group>
                             <group
-                                name="security-pdfa"
-                                attrs="{'invisible': [('pdfa', '=', False)]}"
-                                colspan="2"
-                            >
-                                <div>
+                                    name="security-content"
+                                    string="Content"
+                                    attrs="{'readonly': ['|', ('pdfa', '!=', False), ('restrict_permissions', '=', False)]}"
+                                >
+                                <field name="content_copying_allowed" />
+                                <field
+                                        name="text_access_accessibility_tools_allowed"
+                                        attrs="{'readonly': [('pdfua', '=', True)]}"
+                                    />
+                            </group>
+                            <group
+                                    name="security-pdfa"
+                                    attrs="{'invisible': [('pdfa', '=', False)]}"
+                                    colspan="2"
+                                >
+                                <div colspan="2">
                                     <p
-                                    >The security settings are incompatible with the <b
-                                        >PDF/A-1a</b> option in the <em
-                                        >General</em> tab.</p>
+                                        >The security settings are incompatible with the <b
+                                            >PDF/A</b> option in the <em
+                                            >General</em> tab.</p>
                                 </div>
+                            </group>
                             </group>
                         </group>
                     </page>
